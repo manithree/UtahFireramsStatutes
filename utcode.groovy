@@ -9,8 +9,6 @@
  * Requires groovy, libreoffice, and OOoPy
  */
 
-import groovy.json.JsonOutput
-
 // these are the firearms-related bits
 firearmsRelated = [
   [ title : '10', chapter: 8, part: 1, section: 47 ],
@@ -35,13 +33,13 @@ matcher.each {
 // now get all the sections of the code
 allrtfs = ""
 firearmsRelated.each {
-  if (it.section) {
+  if (it.section) { // just get a section
     url =  "https://le.utah.gov/xcode/Title${it.title}/Chapter${it.chapter}/C${it.title}-${it.chapter}-S${it.section}_${titles[it.title]}.rtf"
   }
   else if (it.part) { // get the whole "part"
     url = "https://le.utah.gov/xcode/Title${it.title}/Chapter${it.chapter}/C${it.title}-${it.chapter}-P${it.part}_${titles[it.title]}.rtf"
   }
-  else {
+  else { // get a chapter
     url = "https://le.utah.gov/xcode/Title${it.title}/Chapter${it.chapter}/C${it.title}-${it.chapter}_${titles[it.title]}.rtf"
   }
   rtf = new URL(url).getText()
