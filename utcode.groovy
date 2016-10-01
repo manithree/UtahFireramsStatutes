@@ -15,6 +15,7 @@ firearmsRelated = [
   [ title : '34', chapter: 45, section: 103 ],
   [ title : '53', chapter: '5a' ],
   [ title : '76', chapter: 1, part: 1, section: 105 ],
+  [ title : '76', chapter: 8, part: 3, section: '311.1' ],
   [ title : '76', chapter: 10, part: 5 ],
 ]
 
@@ -47,7 +48,15 @@ firearmsRelated.each {
   odtname = "T${it.title}_C${it.chapter}_P${it.part}_S${it.section}.odt"
   allrtfs += " ${odtname}"
   new File(fname) << rtf
-  "libreoffice --headless --convert-to odt ${fname}".execute()
+  locmd = "libreoffice --headless --convert-to odt ${fname}"
+  loproc = locmd.execute()
+  loproc.waitForProcessOutput(System.out, System.err)
 }
-println allrtfs
-"ooo_cat ${allrtfs} > FirearmsLaws.odt".execute()
+catcmd =  "ooo_cat -o UtahFirearmsLaws.odt ${allrtfs} "
+println catcmd
+catproc = catcmd.execute()
+catproc.waitForProcessOutput(System.out, System.err)
+
+pdfcmd = "libreoffice --headless --convert-to pdf UtahFirearmsLaws.odt"
+pdfproc = pdfcmd.execute()
+pdfproc.waitForProcessOutput(System.out, System.err)
