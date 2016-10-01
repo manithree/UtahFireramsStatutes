@@ -3,9 +3,6 @@
  * generate a document containing all the Utah
  * firearms-related statutes from le.utah.gov
  *
- * The final ooo_cat doesn't work yet, so I just print
- * the params and run it manually
- *
  * Requires groovy, libreoffice, and OOoPy
  */
 
@@ -19,9 +16,9 @@ firearmsRelated = [
   [ title : '76', chapter: 10, part: 5 ],
 ]
 
+// scrape the page that lists the titles to get the magic v (version?)
 def titlespage = new URL("https://le.utah.gov/xcode/C_1800010118000101.html").getText()
 
-// scrape the page that lists the titles to get the magic v (version?)
 titleLinkRE = /href="(Title.*)">/
 titleRE = /Title([\d\w]+)\/.*\?v=.*_(.*)/
 matcher = (titlespage =~ titleLinkRE)
@@ -31,7 +28,7 @@ matcher.each {
   titles[m2[0][1]] = m2[0][2]
 }
 
-// now get all the sections of the code
+// now get all the firearms-related sections of the code
 allrtfs = ""
 firearmsRelated.each {
   if (it.section) { // just get a section
