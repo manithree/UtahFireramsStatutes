@@ -33,18 +33,33 @@ allrtfs = ""
 firearmsRelated.each {
   if (it.section) { // just get a section
     url =  "https://le.utah.gov/xcode/Title${it.title}/Chapter${it.chapter}/C${it.title}-${it.chapter}-S${it.section}_${titles[it.title]}.rtf"
+    xurl =  "https://le.utah.gov/xcode/Title${it.title}/Chapter${it.chapter}/C${it.title}-${it.chapter}-S${it.section}_${titles[it.title]}.xml"
+    purl =  "https://le.utah.gov/xcode/Title${it.title}/Chapter${it.chapter}/C${it.title}-${it.chapter}-S${it.section}_${titles[it.title]}.pdf"
   }
   else if (it.part) { // get the whole "part"
     url = "https://le.utah.gov/xcode/Title${it.title}/Chapter${it.chapter}/C${it.title}-${it.chapter}-P${it.part}_${titles[it.title]}.rtf"
+    xurl = "https://le.utah.gov/xcode/Title${it.title}/Chapter${it.chapter}/C${it.title}-${it.chapter}-P${it.part}_${titles[it.title]}.xml"
+    purl = "https://le.utah.gov/xcode/Title${it.title}/Chapter${it.chapter}/C${it.title}-${it.chapter}-P${it.part}_${titles[it.title]}.pdf"   
   }
   else { // get a chapter
     url = "https://le.utah.gov/xcode/Title${it.title}/Chapter${it.chapter}/C${it.title}-${it.chapter}_${titles[it.title]}.rtf"
+    xurl = "https://le.utah.gov/xcode/Title${it.title}/Chapter${it.chapter}/C${it.title}-${it.chapter}_${titles[it.title]}.xml"
+    purl = "https://le.utah.gov/xcode/Title${it.title}/Chapter${it.chapter}/C${it.title}-${it.chapter}_${titles[it.title]}.pdf"
   }
   rtf = new URL(url).getText()
+  //xml = new URL(xurl).getText()
+  //pdf = new URL(purl).getBytes()
+  
   fname = "T${it.title}_C${it.chapter}_P${it.part}_S${it.section}.rtf"
+  //xfname = "T${it.title}_C${it.chapter}_P${it.part}_S${it.section}.xml"
+  //pfname = "T${it.title}_C${it.chapter}_P${it.part}_S${it.section}.pdf"
+  
   odtname = "T${it.title}_C${it.chapter}_P${it.part}_S${it.section}.odt"
   allrtfs += " ${odtname}"
   new File(fname) << rtf
+  //new File(xfname) << xml
+  //new File(pfname) << pdf
+  
   locmd = "libreoffice --headless --convert-to odt ${fname}"
   loproc = locmd.execute()
   loproc.waitForProcessOutput(System.out, System.err)
