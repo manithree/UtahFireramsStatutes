@@ -6,7 +6,7 @@
  * Requires groovy, libreoffice, and OOoPy
  */
 
-// these are the firearms-related bits
+// these are the firearms-related statutes
 firearmsRelated = [
   [ title : '10', chapter: 8, part: 1, section: 47 ],
   [ title : '34', chapter: 45, section: 103 ],
