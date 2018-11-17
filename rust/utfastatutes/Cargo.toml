@@ -1,0 +1,7 @@
+[package]
+name = "utfastatutes"
+version = "0.1.0"
+authors = ["blr"]
+
+[dependencies]
+reqwest = "0.9.5"
