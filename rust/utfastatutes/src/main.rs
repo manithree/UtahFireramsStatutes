@@ -1,20 +1,65 @@
 use std::vec::Vec;
 extern crate reqwest;
 
+struct CodeRef {
+    title: String,
+    chapter: String,
+    part: Option<String>,
+    section: Option<String>
+}
+
+
+
 fn main() {
 
+
     println!("Hello, world!");
-    let related: Vec<Vec<(&str, &str)>> = vec![
-        vec![("title", "10"), ("chapter", "8"), ("part", "1"), ("section", "47")],
-        vec![("title", "34"), ("chapter", "45"), ("section", "103")],
-        vec![("title", "53"), ("chapter", "5a")],
-        vec![("title", "76"), ("chapter", "1"), ("part", "1"), ("section", "105")],
-        vec![("title", "76"), ("chapter", "8"), ("part", "3"), ("section", "311.1")],
-        vec![("title", "76"), ("chapter", "10"), ("part", "5")]
+    let related_refs: Vec<CodeRef> = vec![
+        CodeRef {
+            title: String::from("10"),
+            chapter: String::from("8"),
+            part: Some(String::from("1")),
+            section: Some(String::from("47")),
+        },
+        CodeRef {
+            title: String::from("34"),
+            chapter: String::from("45"),
+            part: None,
+            section: Some(String::from("103")),
+        },
+        CodeRef {
+            title: String::from("53"),
+            chapter: String::from("5a"),
+            part: None,
+            section: None,
+        },
+        CodeRef {
+            title: String::from("76"),
+            chapter: String::from("1"),
+            part: Some(String::from("1")),
+            section: Some(String::from("105")),
+        },
+        CodeRef {
+            title: String::from("76"),
+            chapter: String::from("8"),
+            part: Some(String::from("3")),
+            section: Some(String::from("311.1")),
+        },
+        CodeRef {
+            title: String::from("76"),
+            chapter: String::from("10"),
+            part: Some(String::from("5")),
+            section: None,
+        },
+
     ];
-    //println!("related: {:?}", related)
+
     match reqwest::get("https://le.utah.gov/xcode/C_1800010118000101.html") {
         Ok(mut resp) => println!("got page: {:?}", resp.text()),
         Err(err) => println!("error: {:?}", err)
+    }
+
+    for code_ref in &related_refs {
+        println!("Title: {}", code_ref.title)
     }
 }
