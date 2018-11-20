@@ -1,5 +1,8 @@
 use std::vec::Vec;
 use std::collections::HashMap;
+use std::fs::File;
+use std::io::prelude::*;
+use std::process::Command;
 
 extern crate reqwest;
 extern crate regex;
@@ -20,7 +23,7 @@ fn get_title_map(page: &String) -> HashMap<String, String> {
     for cap in link_re.captures_iter(page) {
         let re2 = Regex::new(r#"Title([\d\w]+)/.*\?v=.*_(.*)"#).unwrap();
         for cap2 in re2.captures_iter(&cap[1]) {
-            //println!("Title link: {} {}", &cap2[1], &cap2[2]);
+            println!("Title link: {} {}", &cap2[1], &cap2[2]);
             title_map.insert(cap2[1].to_string(), cap2[2].to_string());
         }
     }
@@ -29,7 +32,7 @@ fn get_title_map(page: &String) -> HashMap<String, String> {
 
 fn get_doc(code_ref: &CodeRef, title_map: &HashMap<String, String>) -> String {
     println!("Getting code: {:?}", code_ref);
-    let mut rtf_url;
+    let rtf_url;
     let title_key = title_map.get(&code_ref.title.to_string()).
         expect("Unkown title!");
     if code_ref.section.is_some() {
@@ -53,7 +56,7 @@ fn get_doc(code_ref: &CodeRef, title_map: &HashMap<String, String>) -> String {
     println!("rtf url: {} ", rtf_url);
 
     // get the rtf
-    let mut resp =  reqwest::get(rtf_url)
+    let mut resp =  reqwest::get(&rtf_url)
         .expect("Unable to retrieve RTF document!");
 
 
@@ -64,13 +67,26 @@ fn get_doc(code_ref: &CodeRef, title_map: &HashMap<String, String>) -> String {
                             curr_part, curr_section);
 
     let odt_name = format!("{}.odt", base_name);
+    let rtf_name = format!("{}.rtf", base_name);
+
+    let mut rtf_file = File::create(&rtf_name)
+        .expect("Unable to create rtf file!");
+    rtf_file.write_all(&resp.text().unwrap().as_bytes())
+        .expect("Unable to write rtf file!");
+
+    let output = Command::new("sh")
+        .arg("-c")
+        .arg(format!("flatpak run org.libreoffice.LibreOffice --headless --convert-to odt {}", &rtf_name))
+        .output()
+        .expect("Failed to convert rtf to odt!");
+
+    println!("{:?}", &output);
     odt_name
 }
 
 
 fn main() {
 
-    println!("Hello, world!");
     let related_refs: Vec<CodeRef> = vec![
         CodeRef {
             title: "10",
@@ -117,10 +133,26 @@ fn main() {
 
     let page_text = resp.text().unwrap();
     let title_map = get_title_map(&page_text);
+    let mut odtfiles = Vec::new();
     for code_ref in &related_refs {
         //println!("Title: {} {} {}", &code_ref.title, &code_ref.chapter, code_ref.section.unwrap().clone());
         let fname = get_doc(&code_ref, &title_map);
         println!("File name: {}", fname);
+        odtfiles.push(fname);
     }
+
+    let mut cat_cmd = String::from("ooo_cat -o UtahFirearmsStatutes.odt ");
+    for odt in odtfiles {
+        cat_cmd.push_str(&format!("{} ",&odt));
+    }
+
+    println!("cat cmd: {}", cat_cmd);
+    let output = Command::new("sh")
+        .arg("-c")
+        .arg(&cat_cmd)
+        .output()
+        .expect("Failed to concatenate odt files!");
+
+    println!("{:?}", &output);
 
 }
