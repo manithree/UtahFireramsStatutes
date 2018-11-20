@@ -5,3 +5,4 @@ authors = ["blr"]
 
 [dependencies]
 reqwest = "0.9.5"
+regex = "1"
