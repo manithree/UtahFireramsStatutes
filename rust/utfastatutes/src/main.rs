@@ -8,6 +8,16 @@ use std::io::prelude::*;
 use std::process::Command;
 use regex::Regex;
 
+/*
+ * This program downloads the latest version (at least it seems to work for now) of the
+ * listed firearms related statutes (see Settings.json).
+ *
+ * Full functionality includes downloading each rtf file, converting to odt, then
+ * concatenating the odt files into one document.
+ *
+ * That requires libreoffice (with a jdk/jre), and OOoPy
+ *
+*/
 
 #[macro_use] extern crate serde_derive;
 

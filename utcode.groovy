@@ -1,7 +1,10 @@
 /* 
- * This is a cheap hackish script to 
- * generate a document containing all the Utah
- * firearms-related statutes from le.utah.gov
+ *  DON'T USE THIS!!
+ *
+ * My initial attempt to reverse engineer the app behing le.utah.gov was unsuccessful,
+ * and reflected in this code.  THIS SCRIPT WILL NOT GET THE LATEST VERSION OF THE STATUTES!!
+ *
+ * Use the new rust code in rust/
  *
  * Requires groovy, libreoffice, and OOoPy
  */
