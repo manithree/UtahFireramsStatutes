@@ -1,149 +1,94 @@
-use std::vec::Vec;
-use std::collections::HashMap;
-use std::fs::File;
-use std::io::prelude::*;
-use std::process::Command;
-
+extern crate serde_json;
 extern crate reqwest;
 extern crate regex;
 
+use std::vec::Vec;
+use std::fs::File;
+use std::io::prelude::*;
+use std::process::Command;
 use regex::Regex;
 
-#[derive(Debug)]
-struct CodeRef <'a> {
-    title: &'a str,
-    chapter: &'a str,
-    part: Option<&'a str>,
-    section: Option<&'a str>
+
+#[macro_use] extern crate serde_derive;
+
+#[derive(Deserialize, Debug)]
+struct CodeRef {
+    url: String,
+    title: String
 }
 
-fn get_title_map(page: &String) -> HashMap<String, String> {
-    let mut title_map:  HashMap<String, String> = HashMap::new();
-    let link_re = Regex::new(r#"href="(Title.*)">"#).unwrap();
-    for cap in link_re.captures_iter(page) {
-        let re2 = Regex::new(r#"Title([\d\w]+)/.*\?v=.*_(.*)"#).unwrap();
-        for cap2 in re2.captures_iter(&cap[1]) {
-            println!("Title link: {} {}", &cap2[1], &cap2[2]);
-            title_map.insert(cap2[1].to_string(), cap2[2].to_string());
-        }
-    }
-    title_map
+
+#[derive(Deserialize, Debug)]
+struct Config {
+    output_format: String,
+    download_format: String,
+    convert_cmd: String,
+    code: Vec<CodeRef>
 }
 
-fn get_doc(code_ref: &CodeRef, title_map: &HashMap<String, String>) -> String {
-    println!("Getting code: {:?}", code_ref);
-    let rtf_url;
-    let title_key = title_map.get(&code_ref.title.to_string()).
-        expect("Unkown title!");
-    if code_ref.section.is_some() {
-        rtf_url = format!("https://le.utah.gov/xcode/Title{}/Chapter{}/C{}-{}-S{}_{}.rtf",
-                          &code_ref.title, &code_ref.chapter,
-                          &code_ref.title, &code_ref.chapter,
-                          &code_ref.section.unwrap(), title_key);
+fn get_code(download_format: &str,
+            output_format: &str,
+            convert_cmd: &str,
+            code_ref: &CodeRef) -> String {
+    let mut dl_file_base: String = "".to_string();
+    let mut resp =  reqwest::get(&code_ref.url)
+        .expect("Unable to retrieve app page!");
+    let page_text = resp.text().unwrap();
+    let version_re = Regex::new(r#"var versionDefault="(.*)";"#).unwrap();
+    for cap in version_re.captures_iter(&page_text) {
+        dl_file_base = cap[1].to_string();
     }
-    else if code_ref.part.is_some() {
-        rtf_url = format!("https://le.utah.gov/xcode/Title{}/Chapter{}/C{}-{}-P{}_{}.rtf",
-                          &code_ref.title, &code_ref.chapter,
-                          &code_ref.title, &code_ref.chapter,
-                          &code_ref.part.unwrap(), title_key);
-    }
-    else {
-        rtf_url = format!("https://le.utah.gov/xcode/Title{}/Chapter{}/C{}-{}_{}.rtf",
-                          &code_ref.title, &code_ref.chapter,
-                          &code_ref.title, &code_ref.chapter,
-                          title_key);
-    }
-    println!("rtf url: {} ", rtf_url);
+    let last_slash = code_ref.url.rfind('/').expect("No final / found in url!");
+    let url_base = &code_ref.url[..last_slash]; // better not be unicode
+    let ver_url = format!("{}/{}.{}",
+                          &url_base, &dl_file_base, &download_format);
+    println!("version_url: {}", &ver_url);
+    let mut ver_resp = reqwest::get(&ver_url)
+        .expect("Unable to download versioned file");
 
-    // get the rtf
-    let mut resp =  reqwest::get(&rtf_url)
-        .expect("Unable to retrieve RTF document!");
+    let dl_file_name = format!("{}.{}",
+                              &dl_file_base, &download_format);
+    let mut dl_file = File::create(&dl_file_name)
+        .expect("Unable to create download file!");
+    dl_file.write_all(&ver_resp.text().unwrap().as_bytes())
+        .expect("Unable to write download file!");
 
-
-    let curr_part = if code_ref.part.is_some() { code_ref.part.unwrap() } else { "null" };
-    let curr_section = if code_ref.section.is_some() { code_ref.section.unwrap() } else { "null" };
-
-    let base_name = format!("T{}_C{}_P{}_S{}", &code_ref.title, &code_ref.chapter,
-                            curr_part, curr_section);
-
-    let odt_name = format!("{}.odt", base_name);
-    let rtf_name = format!("{}.rtf", base_name);
-
-    let mut rtf_file = File::create(&rtf_name)
-        .expect("Unable to create rtf file!");
-    rtf_file.write_all(&resp.text().unwrap().as_bytes())
-        .expect("Unable to write rtf file!");
+    let ret_file = format!("{}.{}",
+                           &dl_file_base, &output_format).to_string();
 
     let output = Command::new("sh")
         .arg("-c")
-        .arg(format!("flatpak run org.libreoffice.LibreOffice --headless --convert-to odt {}", &rtf_name))
+        .arg(format!("{} --headless --convert-to {} {}",
+                     &convert_cmd, &output_format, &dl_file_name))
         .output()
-        .expect("Failed to convert rtf to odt!");
+        .expect("Failed to convert downloaded file!");
 
     println!("{:?}", &output);
-    odt_name
-}
 
+    ret_file
+}
 
 fn main() {
 
-    let related_refs: Vec<CodeRef> = vec![
-        CodeRef {
-            title: "10",
-            chapter: "8",
-            part: Some("1"),
-            section: Some("47"),
-        },
-        CodeRef {
-            title: "34",
-            chapter: "45",
-            part: None,
-            section: Some("103"),
-        },
-        CodeRef {
-            title: "53",
-            chapter: "5a",
-            part: None,
-            section: None,
-        },
-        CodeRef {
-            title: "76",
-            chapter: "1",
-            part: Some("1"),
-            section: Some("105"),
-        },
-        CodeRef {
-            title: "76",
-            chapter: "8",
-            part: Some("3"),
-            section: Some("311.1"),
-        },
-        CodeRef {
-            title: "76",
-            chapter: "10",
-            part: Some("5"),
-            section: None,
-        },
+    let mut file = File::open("Settings.json").unwrap();
+    let mut data = String::new();
+    file.read_to_string(&mut data).unwrap();
 
-    ];
+    let conf: Config  = serde_json::from_str(&data).unwrap();
 
-    let mut resp =  reqwest::get("https://le.utah.gov/xcode/C_1800010118000101.html")
-        .expect("Unable to retrieve titles page!");
-    //println!("Titles page: {:?}", resp.text());
-
-    let page_text = resp.text().unwrap();
-    let title_map = get_title_map(&page_text);
-    let mut odtfiles = Vec::new();
-    for code_ref in &related_refs {
-        //println!("Title: {} {} {}", &code_ref.title, &code_ref.chapter, code_ref.section.unwrap().clone());
-        let fname = get_doc(&code_ref, &title_map);
-        println!("File name: {}", fname);
-        odtfiles.push(fname);
+    // Print out our settings
+    // println!("{:?}", conf );
+    let mut files = Vec::new();
+    for code_ref in conf.code {
+        //println!("{:?}", code_ref);
+        files.push(get_code(&conf.download_format, &conf.output_format, &conf.convert_cmd,
+                            &code_ref));
     }
 
+    // concatenate the files to one document
     let mut cat_cmd = String::from("ooo_cat -o UtahFirearmsStatutes.odt ");
-    for odt in odtfiles {
-        cat_cmd.push_str(&format!("{} ",&odt));
+    for partial_file in files {
+        cat_cmd.push_str(&format!("{} ",&partial_file));
     }
 
     println!("cat cmd: {}", cat_cmd);
@@ -151,8 +96,9 @@ fn main() {
         .arg("-c")
         .arg(&cat_cmd)
         .output()
-        .expect("Failed to concatenate odt files!");
+        .expect("Failed to concatenate files!");
 
     println!("{:?}", &output);
+
 
 }

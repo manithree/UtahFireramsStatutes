@@ -1,0 +1,35 @@
+{
+    "output_format": "odt",
+    "download_format": "rtf",
+    "convert_cmd": "libreoffice6.1",
+    "code": [
+        {
+            "url": "https://le.utah.gov/xcode/Title10/Chapter8/10-8-S47.html",
+            "title": "Powers and Duties of Municipalities - General Powers"
+        },
+        {
+            "url": "https://le.utah.gov/xcode/Title34/Chapter45/34-45-S103.html",
+            "title": "Protection of Activities in Private Vehicles"
+        },
+        {
+            "url": "https://le.utah.gov/xcode/Title53/Chapter5A/53-5a.html",
+            "title": "Firearm Laws"
+        },
+        {
+            "url": "https://le.utah.gov/xcode/Title76/Chapter8/76-8-S311.1.html",
+            "title": "Secure areas -- Items prohibited -- Penalty."
+        },
+        {
+            "url": "https://le.utah.gov/xcode/Title76/Chapter8/76-8-S311.3.html",
+            "title": "Items prohibited in correctional and mental health facilities -- Penalties."
+        },
+        {
+            "url": "https://le.utah.gov/xcode/Title76/Chapter1/76-1-S105.html",
+            "title": "Common law crimes abolished."
+        },
+        {
+            "url": "https://le.utah.gov/xcode/Title76/Chapter10/76-10-P5.html",
+            "title": "Weapons"
+        }
+    ]
+}

@@ -6,3 +6,6 @@ authors = ["blr"]
 [dependencies]
 reqwest = "0.9.5"
 regex = "1"
+serde = "1.0.80"
+serde_json = "1.0.33"
+serde_derive = "1.0.80"
