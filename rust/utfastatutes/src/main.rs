@@ -63,17 +63,20 @@ fn get_code(download_format: &str,
     dl_file.write_all(&ver_resp.text().unwrap().as_bytes())
         .expect("Unable to write download file!");
 
-    let ret_file = format!("{}.{}",
+    let mut ret_file: String = dl_file_name.clone();
+    if output_format == "odt" {
+        ret_file = format!("{}.{}",
                            &dl_file_base, &output_format).to_string();
 
-    let output = Command::new("sh")
-        .arg("-c")
-        .arg(format!("{} --headless --convert-to {} {}",
-                     &convert_cmd, &output_format, &dl_file_name))
-        .output()
-        .expect("Failed to convert downloaded file!");
+        let output = Command::new("sh")
+            .arg("-c")
+            .arg(format!("{} --headless --convert-to {} {}",
+                         &convert_cmd, &output_format, &dl_file_name))
+            .output()
+            .expect("Failed to convert downloaded file!");
 
-    println!("{:?}", &output);
+        println!("{:?}", &output);
+    }
 
     ret_file
 }
@@ -95,20 +98,21 @@ fn main() {
                             &code_ref));
     }
 
-    // concatenate the files to one document
-    let mut cat_cmd = String::from("ooo_cat -o UtahFirearmsStatutes.odt ");
-    for partial_file in files {
-        cat_cmd.push_str(&format!("{} ",&partial_file));
+    if conf.output_format == "odt" {
+        // concatenate the files to one document
+        let mut cat_cmd = String::from("ooo_cat -o UtahFirearmsStatutes.odt ");
+        for partial_file in files {
+            cat_cmd.push_str(&format!("{} ",&partial_file));
+        }
+
+        println!("cat cmd: {}", cat_cmd);
+        let output = Command::new("sh")
+            .arg("-c")
+            .arg(&cat_cmd)
+            .output()
+            .expect("Failed to concatenate files!");
+
+        println!("{:?}", &output);
     }
-
-    println!("cat cmd: {}", cat_cmd);
-    let output = Command::new("sh")
-        .arg("-c")
-        .arg(&cat_cmd)
-        .output()
-        .expect("Failed to concatenate files!");
-
-    println!("{:?}", &output);
-
 
 }
