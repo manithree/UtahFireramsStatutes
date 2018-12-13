@@ -20,12 +20,7 @@ class xml2odf {
             // add paragraph
             Paragraph p1 = outputOdt.addParagraph("Utah Firearms-Related Statutes");
 
-            //Paragraph p1 = outputOdt.getParagraphByIndex(0, true);
-//            Paragraph p2 = outputOdt.getParagraphByIndex(1, true);
-//            Paragraph p3 = outputOdt.getParagraphByIndex(2, true);
-            p1.applyHeading(false, 1);
-//            p2.applyHeading(true, 2);
-//            p3.applyHeading(true, 3);
+            p1.applyHeading(false, 0);
 
             TOCStyle tocstyle = new TOCStyle();
             tocstyle.addStyle("User_20_Index_20_1", 1);
@@ -56,12 +51,6 @@ class xml2odf {
     {
         println "Converting ${xml_file}"
         def statute = new groovy.util.XmlSlurper().parse(new File(xml_file))
-        //        println statute.@number
-        //            println statute.effdate
-        //        println statute.name()
-        //        statute.children().each() {
-        //            println it
-        //        }
         
         if (statute.name() == "chapter") {
             convert_chapter(statute, odt)
@@ -72,12 +61,9 @@ class xml2odf {
         else { // there are other options, but for now ..
             convert_section(statute, odt)
         }
-        //println statute.name()
-        //println statute.catchline.text()
     }
 
     public static void convert_chapter(GPathResult el, TextDocument odt) {
-        println "Generating chapter"
         generate_heading(el, 1, odt)
         el.section.each() {
             convert_section(it, odt)
@@ -86,7 +72,6 @@ class xml2odf {
     }
 
     public static void convert_part(GPathResult el, TextDocument odt) {
-        println "Generating part"
         generate_heading(el, 2, odt)
         el.section.each() {
             convert_section(it, odt)
@@ -95,7 +80,6 @@ class xml2odf {
     }
 
     public static void convert_section(GPathResult el, TextDocument odt) {
-        println "Generating section"
         generate_heading(el, 3, odt)
         el.subsection.each() {
             generate_subsection(it, el.@number.toString(), odt)
@@ -107,9 +91,9 @@ class xml2odf {
     }
 
     public static void generate_heading(GPathResult element, int heading_level, TextDocument odt) {
-        println "Heading: ${element.@number} ${element.catchline.text()}"
+        //println "Heading: ${element.@number} ${element.catchline.text()}"
         Paragraph p = odt.addParagraph("${element.@number} ${element.catchline.text()}");
-        if (element.effdate) {
+        if (element.effdate != null && element.effdate.toString().length() > 0) {
             odt.addParagraph("(Effective ${element.effdate})")
         }
         p.applyHeading(true, heading_level)
