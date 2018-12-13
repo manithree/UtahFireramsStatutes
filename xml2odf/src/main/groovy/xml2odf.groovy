@@ -23,7 +23,7 @@ class xml2odf {
             //Paragraph p1 = outputOdt.getParagraphByIndex(0, true);
 //            Paragraph p2 = outputOdt.getParagraphByIndex(1, true);
 //            Paragraph p3 = outputOdt.getParagraphByIndex(2, true);
-          p1.applyHeading(true, 0);
+            p1.applyHeading(false, 1);
 //            p2.applyHeading(true, 2);
 //            p3.applyHeading(true, 3);
 
@@ -40,6 +40,7 @@ class xml2odf {
             tocstyle.addStyle("User_20_Index_20_10", 10);
             TextTableOfContentElement textTableOfContentElement = outputOdt.createTOCwithStyle(p1, tocstyle, false);
 
+            outputOdt.addPageBreak()
             args[0..-2].each() {
                 convert_xml_file(it, outputOdt);
             }
@@ -81,6 +82,7 @@ class xml2odf {
         el.section.each() {
             convert_section(it, odt)
         }
+        odt.addPageBreak()
     }
 
     public static void convert_part(GPathResult el, TextDocument odt) {
@@ -89,6 +91,7 @@ class xml2odf {
         el.section.each() {
             convert_section(it, odt)
         }
+        odt.addPageBreak()
     }
 
     public static void convert_section(GPathResult el, TextDocument odt) {
