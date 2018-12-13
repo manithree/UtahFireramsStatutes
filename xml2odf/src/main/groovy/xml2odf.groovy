@@ -1,6 +1,6 @@
 import javax.xml.xpath.*
 import java.net.URI;
-
+import groovy.util.slurpersupport.GPathResult;
 import org.odftoolkit.simple.TextDocument;
 import org.odftoolkit.simple.table.Cell;
 import org.odftoolkit.simple.table.Table;
@@ -18,9 +18,9 @@ class xml2odf {
         try {
             outputOdt = TextDocument.newTextDocument();
             // add paragraph
-            outputOdt.addParagraph("Utah Firearms-Related Statutes");
+            Paragraph p1 = outputOdt.addParagraph("Utah Firearms-Related Statutes");
 
-            Paragraph p1 = outputOdt.getParagraphByIndex(0, true);
+            //Paragraph p1 = outputOdt.getParagraphByIndex(0, true);
 //            Paragraph p2 = outputOdt.getParagraphByIndex(1, true);
 //            Paragraph p3 = outputOdt.getParagraphByIndex(2, true);
           p1.applyHeading(true, 0);
@@ -41,20 +41,75 @@ class xml2odf {
             TextTableOfContentElement textTableOfContentElement = outputOdt.createTOCwithStyle(p1, tocstyle, false);
 
             args[0..-2].each() {
-                println it
                 convert_xml_file(it, outputOdt);
             }
 
             outputOdt.save(outFileName);
         } catch (Exception e) {
             println e
-            System.err.println("ERROR: unable to create output file.");
+            org.codehaus.groovy.runtime.StackTraceUtils.sanitize(new Exception(e)).printStackTrace()
         }
     }
 
-    public static void convert_xml_file(String xml_file, TextDocument odt) {
+    public static void convert_xml_file(String xml_file, TextDocument odt)
+    {
         println "Converting ${xml_file}"
-            }
+        def statute = new groovy.util.XmlSlurper().parse(new File(xml_file))
+        //        println statute.@number
+        //            println statute.effdate
+        //        println statute.name()
+        //        statute.children().each() {
+        //            println it
+        //        }
+        
+        if (statute.name() == "chapter") {
+            convert_chapter(statute, odt)
+        }
+        else if (statute.name() == "part") {
+            convert_part(statute, odt)
+        }
+        else { // there are other options, but for now ..
+            convert_section(statute, odt)
+        }
+        //println statute.name()
+        //println statute.catchline.text()
+    }
 
+    public static void convert_chapter(GPathResult el, TextDocument odt) {
+        println "Generating chapter"
+        generate_heading(el, 1, odt)
+        el.section.each() {
+            convert_section(it, odt)
+        }
+    }
+
+    public static void convert_part(GPathResult el, TextDocument odt) {
+        println "Generating part"
+        generate_heading(el, 2, odt)
+        el.section.each() {
+            convert_section(it, odt)
+        }
+    }
+
+    public static void convert_section(GPathResult el, TextDocument odt) {
+        println "Generating section"
+        generate_heading(el, 3, odt)
+        el.subsection.each() {
+            generate_subsection(it, el.@number.toString(), odt)
+        }
+    }
+
+    public static void generate_subsection(GPathResult el, String parent_num, TextDocument odt) {
+        Paragraph p = odt.addParagraph("(${el.@number}) ${el.text()}")
+    }
+
+    public static void generate_heading(GPathResult element, int heading_level, TextDocument odt) {
+        println "Heading: ${element.@number} ${element.catchline.text()}"
+        Paragraph p = odt.addParagraph("${element.@number} ${element.catchline.text()}");
+        if (element.effdate) {
+            odt.addParagraph("(Effective ${element.effdate})")
+        }
+        p.applyHeading(true, heading_level)
+    }
 
 }
