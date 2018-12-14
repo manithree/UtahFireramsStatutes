@@ -25,19 +25,7 @@ class xml2odf {
 
             p1.applyHeading(false, 0);
 
-            // TOCStyle tocstyle = new TOCStyle();
-            // tocstyle.addStyle("User_20_Index_20_1", 1);
-            // tocstyle.addStyle("User_20_Index_20_2", 2);
-            // tocstyle.addStyle("User_20_Index_20_3", 3);
-            // tocstyle.addStyle("User_20_Index_20_4", 4);
-            // tocstyle.addStyle("User_20_Index_20_5", 5);
-            // tocstyle.addStyle("User_20_Index_20_6", 6);
-            // tocstyle.addStyle("User_20_Index_20_7", 7);
-            // tocstyle.addStyle("User_20_Index_20_8", 8);
-            // tocstyle.addStyle("User_20_Index_20_9", 9);
-            // tocstyle.addStyle("User_20_Index_20_10", 10);
-            // TextTableOfContentElement textTableOfContentElement = outputOdt.createTOCwithStyle(p1, tocstyle, false);
-            TextTableOfContentElement textTableOfContentElement = doc.createDefaultTOC(p1,false);
+            TextTableOfContentElement textTableOfContentElement = outputOdt.createDefaultTOC(p1,false);
             outputOdt.addPageBreak()
             args[0..-2].each() {
                 convert_xml_file(it, outputOdt);
@@ -54,7 +42,7 @@ class xml2odf {
     {
         println "Converting ${xml_file}"
         def statute = new groovy.util.XmlSlurper().parse(new File(xml_file))
-        
+
         if (statute.name() == "chapter") {
             convert_chapter(statute, odt)
         }
@@ -92,6 +80,7 @@ class xml2odf {
     public static void generate_subsection(GPathResult el, String parent_num, TextDocument odt, int level) {
         def disp_num = el.@number.toString()[parent_num.length()..-1]
         def local_text = ""
+        println "${el.@number}: localText.size(): ${el.localText().size()}"
         el.localText().each() {
             local_text += it.trim()
         }
