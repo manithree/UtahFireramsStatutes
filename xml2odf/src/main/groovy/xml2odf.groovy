@@ -8,8 +8,11 @@ import org.odftoolkit.simple.text.list.List;
 import org.odftoolkit.simple.text.Paragraph;
 import org.odftoolkit.simple.style.TOCStyle;
 import org.odftoolkit.odfdom.dom.element.text.TextTableOfContentElement;
+import org.odftoolkit.odfdom.dom.style.props.OdfParagraphProperties;
 
 class xml2odf {
+
+    public static int indent_width = 5;
 
     public static void main(String[] args) {
         def outFileName = args[-1];
@@ -22,19 +25,19 @@ class xml2odf {
 
             p1.applyHeading(false, 0);
 
-            TOCStyle tocstyle = new TOCStyle();
-            tocstyle.addStyle("User_20_Index_20_1", 1);
-            tocstyle.addStyle("User_20_Index_20_2", 2);
-            tocstyle.addStyle("User_20_Index_20_3", 3);
-            tocstyle.addStyle("User_20_Index_20_4", 4);
-            tocstyle.addStyle("User_20_Index_20_5", 5);
-            tocstyle.addStyle("User_20_Index_20_6", 6);
-            tocstyle.addStyle("User_20_Index_20_7", 7);
-            tocstyle.addStyle("User_20_Index_20_8", 8);
-            tocstyle.addStyle("User_20_Index_20_9", 9);
-            tocstyle.addStyle("User_20_Index_20_10", 10);
-            TextTableOfContentElement textTableOfContentElement = outputOdt.createTOCwithStyle(p1, tocstyle, false);
-
+            // TOCStyle tocstyle = new TOCStyle();
+            // tocstyle.addStyle("User_20_Index_20_1", 1);
+            // tocstyle.addStyle("User_20_Index_20_2", 2);
+            // tocstyle.addStyle("User_20_Index_20_3", 3);
+            // tocstyle.addStyle("User_20_Index_20_4", 4);
+            // tocstyle.addStyle("User_20_Index_20_5", 5);
+            // tocstyle.addStyle("User_20_Index_20_6", 6);
+            // tocstyle.addStyle("User_20_Index_20_7", 7);
+            // tocstyle.addStyle("User_20_Index_20_8", 8);
+            // tocstyle.addStyle("User_20_Index_20_9", 9);
+            // tocstyle.addStyle("User_20_Index_20_10", 10);
+            // TextTableOfContentElement textTableOfContentElement = outputOdt.createTOCwithStyle(p1, tocstyle, false);
+            TextTableOfContentElement textTableOfContentElement = doc.createDefaultTOC(p1,false);
             outputOdt.addPageBreak()
             args[0..-2].each() {
                 convert_xml_file(it, outputOdt);
@@ -82,12 +85,22 @@ class xml2odf {
     public static void convert_section(GPathResult el, TextDocument odt) {
         generate_heading(el, 3, odt)
         el.subsection.each() {
-            generate_subsection(it, el.@number.toString(), odt)
+            generate_subsection(it, el.@number.toString(), odt, 0)
         }
     }
 
-    public static void generate_subsection(GPathResult el, String parent_num, TextDocument odt) {
-        Paragraph p = odt.addParagraph("(${el.@number}) ${el.text()}")
+    public static void generate_subsection(GPathResult el, String parent_num, TextDocument odt, int level) {
+        def disp_num = el.@number.toString()[parent_num.length()..-1]
+        def local_text = ""
+        el.localText().each() {
+            local_text += it.trim()
+        }
+        Paragraph p = odt.addParagraph("${disp_num} ${local_text}")
+        def p_el = p.getOdfElement()
+        p_el.setProperty(OdfParagraphProperties.MarginLeft, "${level*indent_width}mm");
+        el.subsection.each() {
+            generate_subsection(it, el.@number.toString(), odt, level+1)
+        }
     }
 
     public static void generate_heading(GPathResult element, int heading_level, TextDocument odt) {
