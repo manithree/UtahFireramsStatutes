@@ -1,6 +1,5 @@
 import javax.xml.xpath.*
 import java.net.URI;
-import groovy.util.slurpersupport.GPathResult;
 import org.odftoolkit.simple.TextDocument;
 import org.odftoolkit.simple.table.Cell;
 import org.odftoolkit.simple.table.Table;
@@ -41,7 +40,7 @@ class xml2odf {
     public static void convert_xml_file(String xml_file, TextDocument odt)
     {
         println "Converting ${xml_file}"
-        def statute = new groovy.util.XmlSlurper().parse(new File(xml_file))
+        def statute = new XmlParser().parse(new File(xml_file))
 
         if (statute.name() == "chapter") {
             convert_chapter(statute, odt)
@@ -54,7 +53,7 @@ class xml2odf {
         }
     }
 
-    public static void convert_chapter(GPathResult el, TextDocument odt) {
+    public static void convert_chapter(Node el, TextDocument odt) {
         generate_heading(el, 1, odt)
         el.section.each() {
             convert_section(it, odt)
@@ -62,7 +61,7 @@ class xml2odf {
         odt.addPageBreak()
     }
 
-    public static void convert_part(GPathResult el, TextDocument odt) {
+    public static void convert_part(Node el, TextDocument odt) {
         generate_heading(el, 2, odt)
         el.section.each() {
             convert_section(it, odt)
@@ -70,14 +69,14 @@ class xml2odf {
         odt.addPageBreak()
     }
 
-    public static void convert_section(GPathResult el, TextDocument odt) {
+    public static void convert_section(Node el, TextDocument odt) {
         generate_heading(el, 3, odt)
         el.subsection.each() {
             generate_subsection(it, el.@number.toString(), odt, 0)
         }
     }
 
-    public static void generate_subsection(GPathResult el, String parent_num, TextDocument odt, int level) {
+    public static void generate_subsection(Node el, String parent_num, TextDocument odt, int level) {
         def disp_num = el.@number.toString()[parent_num.length()..-1]
         def local_text = ""
         println "${el.@number}: localText.size(): ${el.localText().size()}"
@@ -92,7 +91,7 @@ class xml2odf {
         }
     }
 
-    public static void generate_heading(GPathResult element, int heading_level, TextDocument odt) {
+    public static void generate_heading(Node element, int heading_level, TextDocument odt) {
         //println "Heading: ${element.@number} ${element.catchline.text()}"
         Paragraph p = odt.addParagraph("${element.@number} ${element.catchline.text()}");
         if (element.effdate != null && element.effdate.toString().length() > 0) {
