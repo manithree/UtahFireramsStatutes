@@ -79,23 +79,33 @@ class xml2odf {
     public static void generate_subsection(Node el, String parent_num, TextDocument odt, int level) {
         def disp_num = el.@number.toString()[parent_num.length()..-1]
         def local_text = ""
-        println "${el.@number}: localText.size(): ${el.localText().size()}"
-        el.localText().each() {
-            local_text += it.trim()
-        }
-        Paragraph p = odt.addParagraph("${disp_num} ${local_text}")
+        Paragraph p = odt.addParagraph("${disp_num} ")
         def p_el = p.getOdfElement()
         p_el.setProperty(OdfParagraphProperties.MarginLeft, "${level*indent_width}mm");
-        el.subsection.each() {
-            generate_subsection(it, el.@number.toString(), odt, level+1)
+        el.children().each() { child ->
+            if (child in Node) {
+                if (child.name() == "xref") {
+                    p.appendTextContent(child.text().trim() + " ")
+                }
+                else if (child.name() == "subsection") {
+                    generate_subsection(child, el.@number.toString(), odt, level+1)
+                }
+            }
+            else if (child in String) {
+                p.appendTextContent(child.trim() + " ")
+            }
+            else {
+                println "Unrecognized child of subsection ${el.@number}: ${child.getClass()}"
+            }
         }
     }
 
     public static void generate_heading(Node element, int heading_level, TextDocument odt) {
         //println "Heading: ${element.@number} ${element.catchline.text()}"
         Paragraph p = odt.addParagraph("${element.@number} ${element.catchline.text()}");
-        if (element.effdate != null && element.effdate.toString().length() > 0) {
-            odt.addParagraph("(Effective ${element.effdate})")
+        // TODO this broke changing to XmlParser:
+        if (element.effdate != null && element.effdate.size() > 0) {
+            odt.addParagraph("(Effective ${element.effdate[0].text()})")
         }
         p.applyHeading(true, heading_level)
     }

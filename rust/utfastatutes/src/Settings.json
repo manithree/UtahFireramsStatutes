@@ -1,6 +1,6 @@
 {
-    "output_format": "odt",
-    "download_format": "rtf",
+    "output_format": "rtf",
+    "download_format": "xml",
     "convert_cmd": "libreoffice6.1",
     "code": [
         {
