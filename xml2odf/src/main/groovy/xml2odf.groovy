@@ -22,7 +22,7 @@ class xml2odf {
             // add paragraph
             Paragraph p1 = outputOdt.addParagraph("Utah Firearms-Related Statutes");
 
-            p1.applyHeading(false, 0);
+            p1.applyHeading(false, 1);
 
             TextTableOfContentElement textTableOfContentElement = outputOdt.createDefaultTOC(p1,false);
             outputOdt.addPageBreak()
@@ -71,8 +71,14 @@ class xml2odf {
 
     public static void convert_section(Node el, TextDocument odt) {
         generate_heading(el, 3, odt)
-        el.subsection.each() {
-            generate_subsection(it, el.@number.toString(), odt, 0)
+        if (el.subsection.size() < 1) {
+            // treat as a subsection:
+            generate_subsection(el, "", odt, 1)
+        }
+        else {
+            el.subsection.each() {
+                generate_subsection(it, el.@number.toString(), odt, 0)
+            }
         }
     }
 
@@ -89,6 +95,9 @@ class xml2odf {
                 }
                 else if (child.name() == "subsection") {
                     generate_subsection(child, el.@number.toString(), odt, level+1)
+                }
+                else {
+                    println "Unrecognized node type ${child.name()} in ${el.@number}"
                 }
             }
             else if (child in String) {
