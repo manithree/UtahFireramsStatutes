@@ -52,7 +52,7 @@ fn get_code(download_format: &str,
     let url_base = &code_ref.url[..last_slash]; // better not be unicode
     let ver_url = format!("{}/{}.{}",
                           &url_base, &dl_file_base, &download_format);
-    println!("version_url: {}", &ver_url);
+    //println!("version_url: {}", &ver_url);
     let mut ver_resp = reqwest::get(&ver_url)
         .expect("Unable to download versioned file");
 
@@ -62,7 +62,7 @@ fn get_code(download_format: &str,
         .expect("Unable to create download file!");
     dl_file.write_all(&ver_resp.text().unwrap().as_bytes())
         .expect("Unable to write download file!");
-
+    println!("{}", &dl_file_name);
     let mut ret_file: String = dl_file_name.clone();
     if output_format == "odt" {
         ret_file = format!("{}.{}",
