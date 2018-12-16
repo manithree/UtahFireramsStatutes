@@ -8,3 +8,4 @@ rust part), and generates an odt file with a talbe of contents. This document
 needs to be opened in libreoffice and the TOC generated, before it's suitable
 for uploading.
 
+[Here's a sample of the finished product.](https://docs.google.com/document/d/1Anse2TZuIZHRj9gx5BgNwZsWpsN0HVHdc_xZq5mesJY/edit?usp=sharing)
