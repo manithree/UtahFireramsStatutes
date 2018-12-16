@@ -1,8 +1,10 @@
 # UtahFireramsStatutes
 
-Downloads the statutes manually specified as firearm-related, and creates a libreoffice (odt)
-document suitable for upload to, say, google docs/drive
+The rust part downloads the specified statues in rtf, xml, or pdf. It can also
+generate a combined odt file from rtf files, but that's now deprecated.
 
-DON'T USE THE GROOVY SCRIPT!
+The new groovy script takes xml formatted statutes (usually downloaded by the
+rust part), and generates an odt file with a talbe of contents. This document
+needs to be opened in libreoffice and the TOC generated, before it's suitable
+for uploading.
 
-The rust program is the latest, and working code.
